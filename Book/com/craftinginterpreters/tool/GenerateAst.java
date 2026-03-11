@@ -22,7 +22,8 @@ public class GenerateAst {
       "Literal  : Object value",
       "Logical  : Expr left, Token operator, Expr right",
       "Set      : Expr object, Token name, Expr value",
-      "Super    : Token keyword, Token method",
+      //"Super    : Token keyword, Token method",
+      "INNER    : Token keyword",
       "This     : Token keyword",
       "Unary    : Token operator, Expr right",
       // chall 10 
@@ -45,6 +46,7 @@ public class GenerateAst {
             "Return     : Token keyword, Expr value",
             "Var         :  Token name, Expr initializer",
             "While      : Expr condition, Stmt body",
+            "Class      : Token name, List<Stmt.Function> methods, List<Stmt.Function> classMethods",
             "Break      : "  // <--
     ));
 

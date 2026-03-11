@@ -38,6 +38,7 @@ class Scanner {
     keywords.put("var",    VAR);
     keywords.put("while",  WHILE);
     keywords.put("break",  BREAK);
+    keywords.put("inner",  INNER);
   }
 
   Scanner(String source) {

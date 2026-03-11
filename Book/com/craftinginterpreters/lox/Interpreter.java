@@ -15,7 +15,7 @@ class Interpreter implements Expr.Visitor<Object>,
     private Environment environment = globals;
     private static class BreakException extends RuntimeException {}
     private final Map<Expr, int[]> locals = new HashMap<>();
-    final java.util.Deque<LoxMethodChain> innerStack = new java.util.ArrayDeque<>();
+    private final java.until.Deque<LoxCallable> innerStack = new java.util.ArrayDeque<>();
 
     Interpreter() {
     globals.define("clock", new LoxCallable() {
@@ -113,31 +113,6 @@ class Interpreter implements Expr.Visitor<Object>,
   @Override
   public Object visitThisExpr(Expr.This expr) {
     return lookUpVariable(expr.keyword, expr);
-  }
-
-  @Override
-  public Object visitInnerExpr(Expr.Inner expr) {
-    // Check if we're in a method context
-    if (innerStack.isEmpty()) {
-      throw new RuntimeError(expr.keyword,
-          "Cannot use 'inner' outside of a method.");
-    }
-
-    // Get the current method chain
-    LoxMethodChain chain = innerStack.peek();
-    
-    // Advance to next method in chain (toward subclass)
-    chain.advanceToNext();
-    
-    // Get next method
-    LoxFunction nextMethod = chain.peek();
-    if (nextMethod == null) {
-      throw new RuntimeError(expr.keyword,
-          "No inner method to call.");
-    }
-    
-    // Call the next method with empty arguments (inner takes no params)
-    return nextMethod.call(this, new java.util.ArrayList<>());
   }
 
   @Override
@@ -510,7 +485,7 @@ public Object visitFunctionExpr(Expr.Function expr) {
         "Only instances have properties.");
   }
 
-
+  
 
 
 }
