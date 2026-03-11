@@ -1,0 +1,21 @@
+// Simple extension methods test
+
+class Person {
+  init(name) {
+    this.name = name;
+  }
+}
+
+var alice = Person("Alice");
+
+// Add methods to Person class
+extend Person {
+  greet() {
+    print "Hello, " + this.name;
+  }
+}
+
+alice.greet(); // Should print: Hello, Alice
+
+var bob = Person("Bob");
+bob.greet(); // Should print: Hello, Bob

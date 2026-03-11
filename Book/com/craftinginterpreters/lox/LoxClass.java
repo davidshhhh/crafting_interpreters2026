@@ -57,16 +57,19 @@ class LoxClass implements LoxCallable {
 
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 
 class LoxClass implements LoxCallable {
   final String name;
   final LoxClass superclass;
 
   private final Map<String, LoxFunction> methods;
+  private final Map<String, LoxFunction> extensionMethods = new HashMap<>();
 
 
-  LoxClass(String name, LoxClass superclass,
+  LoxClass(String name, LoxClass superclass, LoxClass metaclass,
            Map<String, LoxFunction> methods) {
+    super(metaclass);
     this.superclass = superclass;
 
     this.name = name;
@@ -78,6 +81,10 @@ class LoxClass implements LoxCallable {
       return methods.get(name);
     }
 
+    // Check extension methods
+    if (extensionMethods.containsKey(name)) {
+      return extensionMethods.get(name);
+    }
 
     if (superclass != null) {
       return superclass.findMethod(name);
@@ -85,6 +92,10 @@ class LoxClass implements LoxCallable {
 
 
     return null;
+  }
+
+  void addExtension(String name, LoxFunction method) {
+    extensionMethods.put(name, method);
   }
 
 

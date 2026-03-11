@@ -181,15 +181,12 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
     beginScope();
     scopes.peek().put("this", true);
 
-    for (Stmt.Function method : stmt.methods) {
-      FunctionType declaration = FunctionType.METHOD;
-      if (method.name.lexeme.equals("init")) {
-        declaration = FunctionType.INITIALIZER;
-      }
-      resolveFunction(method, declaration); 
-    }
-
-    endScope();
+    for (Stmt.Function method : stmt.classMethods) {
+      beginScope();
+      scopes.peek().put("this", true);
+      resolveFunction(method, FunctionType.METHOD);
+      endScope();
+}
     if (stmt.superclass != null) endScope();
     
     currentClass = enclosingClass;
@@ -199,6 +196,16 @@ class Resolver implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
   @Override
   public Void visitExpressionStmt(Stmt.Expression stmt) {
     resolve(stmt.expression);
+    return null;
+  }
+
+  @Override
+  public Void visitExtendStmt(Stmt.Extend stmt) {
+    // Resolve extension methods like regular methods
+    for (Stmt.Function method : stmt.methods) {
+      FunctionType declaration = FunctionType.METHOD;
+      resolveFunction(method, declaration);
+    }
     return null;
   }
 

@@ -100,6 +100,10 @@ class LoxFunction implements LoxCallable {
 
   }
 
+  boolean isGetter() {
+    return declaration.isGetter;
+  }
+
   @Override
   public String toString() {
     return "<fn " + declaration.name.lexeme + ">";

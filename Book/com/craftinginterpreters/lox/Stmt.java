@@ -7,6 +7,7 @@ abstract class Stmt {
     R visitBlockStmt(Block stmt);
     R visitClassStmt(Class stmt);
     R visitExpressionStmt(Expression stmt);
+    R visitExtendStmt(Extend stmt);
     R visitFunctionStmt(Function stmt);
     R visitIfStmt(If stmt);
     R visitPrintStmt(Print stmt);
@@ -64,12 +65,36 @@ abstract class Stmt {
     final Expr expression;
   }
 //< stmt-expression
+//> stmt-extend
+  static class Extend extends Stmt {
+    Extend(Token className, List<Stmt.Function> methods) {
+      this.className = className;
+      this.methods = methods;
+    }
+
+    @Override
+    <R> R accept(Visitor<R> visitor) {
+      return visitor.visitExtendStmt(this);
+    }
+
+    final Token className;
+    final List<Stmt.Function> methods;
+  }
+//< stmt-extend
 //> stmt-function
   static class Function extends Stmt {
     Function(Token name, List<Token> params, List<Stmt> body) {
       this.name = name;
       this.params = params;
       this.body = body;
+      this.isGetter = false;
+    }
+
+    Function(Token name, List<Token> params, List<Stmt> body, boolean isGetter) {
+      this.name = name;
+      this.params = params;
+      this.body = body;
+      this.isGetter = isGetter;
     }
 
     @Override
@@ -80,6 +105,7 @@ abstract class Stmt {
     final Token name;
     final List<Token> params;
     final List<Stmt> body;
+    final boolean isGetter;
   }
 //< stmt-function
 //> stmt-if

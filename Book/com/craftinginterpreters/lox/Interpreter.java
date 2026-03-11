@@ -15,6 +15,7 @@ class Interpreter implements Expr.Visitor<Object>,
     private Environment environment = globals;
     private static class BreakException extends RuntimeException {}
     private final Map<Expr, int[]> locals = new HashMap<>();
+    final java.util.Deque<LoxMethodChain> innerStack = new java.util.ArrayDeque<>();
 
     Interpreter() {
     globals.define("clock", new LoxCallable() {
@@ -30,6 +31,24 @@ class Interpreter implements Expr.Visitor<Object>,
       @Override
       public String toString() { return "<native fn>"; }
     });
+    // chapter 13 chall 3 - can now get string lenght.
+    globals.define("len", new LoxCallable() {
+    @Override
+    public int arity() { return 1; }
+
+    @Override
+    public Object call(Interpreter interpreter,
+                       List<Object> arguments) {
+      Object arg = arguments.get(0);
+      if (arg instanceof String) {
+        return (double) ((String) arg).length();
+      }
+      throw new RuntimeError(null, "Argument to len() must be a string.");
+    }
+
+    @Override
+    public String toString() { return "<native fn>"; }
+  });
   }
 
     void interpret(List<Stmt> statements) {
@@ -94,6 +113,31 @@ class Interpreter implements Expr.Visitor<Object>,
   @Override
   public Object visitThisExpr(Expr.This expr) {
     return lookUpVariable(expr.keyword, expr);
+  }
+
+  @Override
+  public Object visitInnerExpr(Expr.Inner expr) {
+    // Check if we're in a method context
+    if (innerStack.isEmpty()) {
+      throw new RuntimeError(expr.keyword,
+          "Cannot use 'inner' outside of a method.");
+    }
+
+    // Get the current method chain
+    LoxMethodChain chain = innerStack.peek();
+    
+    // Advance to next method in chain (toward subclass)
+    chain.advanceToNext();
+    
+    // Get next method
+    LoxFunction nextMethod = chain.peek();
+    if (nextMethod == null) {
+      throw new RuntimeError(expr.keyword,
+          "No inner method to call.");
+    }
+    
+    // Call the next method with empty arguments (inner takes no params)
+    return nextMethod.call(this, new java.util.ArrayList<>());
   }
 
   @Override
@@ -237,6 +281,10 @@ private Object lookUpVariable(Token name, Expr expr) {
       environment = new Environment(environment);
       environment.define("super", superclass);
     }
+
+    LoxClass metaclass = new LoxClass(null,
+      stmt.name.lexeme + " metaclass", classMethods);
+
     Map<String, LoxFunction> methods = new HashMap<>();
     for (Stmt.Function method : stmt.methods) {
       LoxFunction function = new LoxFunction(method, environment,
@@ -244,9 +292,9 @@ private Object lookUpVariable(Token name, Expr expr) {
       methods.put(method.name.lexeme, function);
     }
 
-    LoxClass klass = new LoxClass(stmt.name.lexeme, methods);
-    LoxClass klass = new LoxClass(stmt.name.lexeme,
-        (LoxClass)superclass, methods);
+    LoxClass metaclass = new LoxClass(null,
+      stmt.name.lexeme + " metaclass", classMethods);
+    LoxClass klass = new LoxClass(stmt.name.lexeme,(LoxClass)superclass, methods);
     if (superclass != null) {
       environment = environment.enclosing;
     }
@@ -257,6 +305,25 @@ private Object lookUpVariable(Token name, Expr expr) {
   @Override
   public Void visitExpressionStmt(Stmt.Expression stmt) {
     evaluate(stmt.expression);
+    return null;
+  }
+
+  @Override
+  public Void visitExtendStmt(Stmt.Extend stmt) {
+    Object value = globals.get(stmt.className);
+    
+    if (!(value instanceof LoxClass)) {
+      throw new RuntimeError(stmt.className,
+          "Can only extend classes.");
+    }
+    
+    LoxClass klass = (LoxClass) value;
+    
+    for (Stmt.Function method : stmt.methods) {
+      LoxFunction function = new LoxFunction(method, environment, false);
+      klass.addExtension(method.name.lexeme, function);
+    }
+    
     return null;
   }
 
@@ -426,12 +493,24 @@ public Object visitFunctionExpr(Expr.Function expr) {
   public Object visitGetExpr(Expr.Get expr) {
     Object object = evaluate(expr.object);
     if (object instanceof LoxInstance) {
-      return ((LoxInstance) object).get(expr.name);
+      Object result = ((LoxInstance) object).get(expr.name);
+      
+      // If it's a getter, automatically invoke it
+      if (result instanceof LoxFunction) {
+        LoxFunction function = (LoxFunction) result;
+        if (function.isGetter()) {
+          return function.call(this, new ArrayList<>());
+        }
+      }
+      
+      return result;
     }
 
     throw new RuntimeError(expr.name,
         "Only instances have properties.");
   }
+
+
 
 
 }

@@ -40,6 +40,7 @@ class Parser {
     private Stmt declaration() {
     try {
       if (match(CLASS)) return classDeclaration();
+      if (match(EXTEND)) return extendDeclaration();
       if (check(FUN) && checkNext(IDENTIFIER)) {
   consume(FUN, null);
   return function("function");
@@ -55,23 +56,35 @@ class Parser {
 
 
   private Stmt classDeclaration() {
-    Token name = consume(IDENTIFIER, "Expect class name.");
+  Token name = consume(IDENTIFIER, "Expect class name.");
 
-    Expr.Variable superclass = null;
-    if (match(LESS)) {
-      consume(IDENTIFIER, "Expect superclass name.");
-      superclass = new Expr.Variable(previous());
-    }
-    consume(LEFT_BRACE, "Expect '{' before class body.");
+  List<Stmt.Function> methods = new ArrayList<>();
+  List<Stmt.Function> classMethods = new ArrayList<>();
+  consume(LEFT_BRACE, "Expect '{' before class body.");
 
+  while (!check(RIGHT_BRACE) && !isAtEnd()) {
+    boolean isClassMethod = match(CLASS);
+    (isClassMethod ? classMethods : methods).add(function("method"));
+  }
+
+  consume(RIGHT_BRACE, "Expect '}' after class body.");
+
+  return new Stmt.Class(name, methods, classMethods);
+}
+
+  private Stmt extendDeclaration() {
+    Token className = consume(IDENTIFIER, "Expect class name after 'extend'.");
+    
+    consume(LEFT_BRACE, "Expect '{' before extension body.");
+    
     List<Stmt.Function> methods = new ArrayList<>();
     while (!check(RIGHT_BRACE) && !isAtEnd()) {
       methods.add(function("method"));
     }
-
-    consume(RIGHT_BRACE, "Expect '}' after class body.");
-
-    return new Stmt.Class(name, superclass, methods);
+    
+    consume(RIGHT_BRACE, "Expect '}' after extension body.");
+    
+    return new Stmt.Extend(className, methods);
   }
 
     private Stmt statement() {
@@ -231,6 +244,16 @@ class Parser {
 
 private Stmt.Function function(String kind) {
     Token name = consume(IDENTIFIER, "Expect " + kind + " name.");
+    
+    // Check if this is a getter (no parameter list)
+    if (!check(LEFT_PAREN)) {
+      // This is a getter method
+      consume(LEFT_BRACE, "Expect '{' before " + kind + " body.");
+      List<Stmt> body = block();
+      return new Stmt.Function(name, new ArrayList<>(), body, true);
+    }
+    
+    // Regular method with parameters
     consume(LEFT_PAREN, "Expect '(' after " + kind + " name.");
     List<Token> parameters = new ArrayList<>();
     if (!check(RIGHT_PAREN)) {
@@ -247,7 +270,26 @@ private Stmt.Function function(String kind) {
 
     consume(LEFT_BRACE, "Expect '{' before " + kind + " body.");
     List<Stmt> body = block();
-    return new Stmt.Function(name, parameters, body);
+    return new Stmt.Function(name, parameters, body, false);
+  }
+
+  private Expr.Function functionBody(String kind) {
+    consume(LEFT_PAREN, "Expect '(' after " + kind + " name.");
+    List<Token> parameters = new ArrayList<>();
+    if (!check(RIGHT_PAREN)) {
+      do {
+        if (parameters.size() >= 8) {
+          error(peek(), "Can't have more than 8 parameters.");
+        }
+
+        parameters.add(consume(IDENTIFIER, "Expect parameter name."));
+      } while (match(COMMA));
+    }
+    consume(RIGHT_PAREN, "Expect ')' after parameters.");
+
+    consume(LEFT_BRACE, "Expect '{' before " + kind + " body.");
+    List<Stmt> body = block();
+    return new Expr.Function(parameters, body);
   }
   
 
@@ -495,31 +537,6 @@ private Stmt.Function function(String kind) {
     Lox.error(token, message);
     return new ParseError();
   }
-
-  private Stmt.Function function(String kind) {
-  Token name = consume(IDENTIFIER, "Expect " + kind + " name.");
-  return new Stmt.Function(name, functionBody(kind));
-}
-
-private Expr.Function functionBody(String kind) {
-  consume(LEFT_PAREN, "Expect '(' after " + kind + " name.");
-  List<Token> parameters = new ArrayList<>();
-  if (!check(RIGHT_PAREN)) {
-    do {
-      if (parameters.size() >= 8) {
-        error(peek(), "Can't have more than 8 parameters.");
-      }
-
-      parameters.add(consume(IDENTIFIER, "Expect parameter name."));
-    } while (match(COMMA));
-  }
-  consume(RIGHT_PAREN, "Expect ')' after parameters.");
-
-  consume(LEFT_BRACE, "Expect '{' before " + kind + " body.");
-  List<Stmt> body = block();
-  return new Expr.Function(parameters, body);
-}
-
 
   Object parseRepl() {
   allowExpression = true;
