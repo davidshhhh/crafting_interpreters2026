@@ -23,9 +23,9 @@ typedef struct {
   int capacity;
   uint8_t* code;
   ValueArray constants;
-  int lineCount;
-  int lineCapacity;
-  LineStart* lines;
+  int lineCount;            // Number of entries in the lines array.
+  int lineCapacity;         // Capacity of the lines array.
+  LineStart* lines;         // Array of line number information.
 } Chunk;
 
 void initChunk(Chunk* chunk);

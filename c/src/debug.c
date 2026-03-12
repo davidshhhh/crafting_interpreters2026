@@ -37,7 +37,7 @@ static int longConstantInstruction(const char* name, Chunk* chunk,
   return offset + 4;
 }
 
-int disassembleInstruction(Chunk* chunk, int offset) {
+int disassembleInstruction(Chunk* chunk, int offset) {               
   printf("%04d ", offset);
   int line = getLine(chunk, offset);
   if (offset > 0 && line == getLine(chunk, offset - 1)) {
@@ -51,7 +51,7 @@ int disassembleInstruction(Chunk* chunk, int offset) {
     case OP_CONSTANT:
       return constantInstruction("OP_CONSTANT", chunk, offset);
     case OP_CONSTANT_LONG:
-      return longConstantInstruction("OP_CONSTANT_LONG", chunk, offset);
+      return longConstantInstruction("OP_CONSTANT_LONG", chunk, offset);    
     case OP_RETURN:
       return simpleInstruction("OP_RETURN", offset);
     default:
