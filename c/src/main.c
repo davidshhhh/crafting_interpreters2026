@@ -4,7 +4,7 @@
 #include "debug.h"
 #include "vm.h"
 
-/*
+
 
 int main(int argc, const char* argv[]) {
   Chunk chunk;
@@ -21,10 +21,8 @@ int main(int argc, const char* argv[]) {
   return 0;
 }
 
-*/
 
-
-
+/* 
 // test code for challenge question 1 :chapter 14  added line number tracking to the chunk
 int main(int argc, const char* argv[]) {
   initVM();
@@ -77,5 +75,7 @@ int main(int argc, const char* argv[]) {
   freeChunk(&chunk);
   return 0;
 }
+
+*/
 
 // gcc -Iinclude src/*.c -o clox && ./clox  // use this to compile and run the program
