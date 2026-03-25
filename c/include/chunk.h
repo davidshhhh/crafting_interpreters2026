@@ -7,6 +7,11 @@
 
 typedef enum {
   OP_CONSTANT,
+  OP_ADD,
+  OP_SUBTRACT,
+  OP_MULTIPLY,
+  OP_DIVIDE,
+  OP_NEGATE,
   OP_CONSTANT_LONG, // <-- Challenge question 2 :chapter 14 added this new opcode for constants 
   OP_RETURN,
 } OpCode;
