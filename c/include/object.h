@@ -19,12 +19,21 @@ struct Obj {
   struct Obj* next;
 };
 
+// Chapter 19 chall question
+// struct ObjString {
+//   Obj obj;
+//   int length;
+//   char chars[];
+// };
+
 struct ObjString {
   Obj obj;
   int length;
   char* chars;
 };
 
+// Chapter 19 chall question
+// ObjString* makeString(int length);
 ObjString* takeString(char* chars, int length);
 ObjString* copyString(const char* chars, int length);
 

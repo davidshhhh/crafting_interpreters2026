@@ -17,6 +17,29 @@ static Obj* allocateObject(size_t size, ObjType type) {
   return object;
 }
 
+// Chapter 19 chall question - flexible array member
+// ObjString* makeString(int length) {
+//   ObjString* string = (ObjString*)allocateObject(
+//       sizeof(ObjString) + length + 1, OBJ_STRING);
+//   string->length = length;
+//   return string;
+// }
+
+// ObjString* takeString(char* chars, int length) {
+//   ObjString* string = makeString(length);
+//   memcpy(string->chars, chars, length);
+//   string->chars[length] = '\0';
+//   free(chars);
+//   return string;
+// }
+
+// ObjString* copyString(const char* chars, int length) {
+//   ObjString* string = makeString(length);
+//   memcpy(string->chars, chars, length);
+//   string->chars[length] = '\0';
+//   return string;
+// }
+
 static ObjString* allocateString(char* chars, int length) {
   ObjString* string = ALLOCATE_OBJ(ObjString, OBJ_STRING);
   string->length = length;
