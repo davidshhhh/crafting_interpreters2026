@@ -32,6 +32,7 @@ static void runtimeError(const char* format, ...) {
 void initVM() {
     resetStack();
     vm.objects = NULL;
+    initTable(&vm.strings);
 }
 
 // challenge question 15
@@ -46,6 +47,7 @@ void initVM() {
 // }
 
 void freeVM() {
+  freeTable(&vm.strings);
   freeObjects();
 }
 

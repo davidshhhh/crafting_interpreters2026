@@ -30,10 +30,12 @@ struct ObjString {
   Obj obj;
   int length;
   char* chars;
+  uint32_t hash;
 };
 
 // Chapter 19 chall question
 // ObjString* makeString(int length);
+
 ObjString* takeString(char* chars, int length);
 ObjString* copyString(const char* chars, int length);
 
