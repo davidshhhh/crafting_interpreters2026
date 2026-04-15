@@ -4,6 +4,13 @@
 #include "common.h"
 #include "value.h"
 
+
+// typedef struct {
+//   Value key;      
+//   Value value;
+// } Entry;
+//
+
 typedef struct {
   ObjString* key;
   Value value;

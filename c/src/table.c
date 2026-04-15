@@ -8,6 +8,49 @@
 
 #define TABLE_MAX_LOAD 0.75
 
+
+// CHALLENGE QUESTION 20
+//
+// static uint32_t hashValue(Value value) {
+//   switch (value.type) {
+//     case VAL_BOOL:
+//       return AS_BOOL(value) ? 1 : 0;
+//     case VAL_NIL:
+//       return 2;
+//     case VAL_NUMBER: {
+//       double num = AS_NUMBER(value);
+//       uint64_t bits;
+//       memcpy(&bits, &num, sizeof(uint64_t));
+//       return (uint32_t)(bits ^ (bits >> 32));
+//     }
+//     case VAL_OBJ:
+//       if (IS_STRING(value)) return AS_STRING(value)->hash;
+//       return 0;
+//   }
+//   return 0;
+// }
+
+// static Entry* findEntry(Entry* entries, int capacity, Value key) {
+//   uint32_t index = hashValue(key) % capacity;
+//   
+//   Entry* tombstone = NULL;
+//   for (;;) {
+//     Entry* entry = &entries[index];
+//     if (IS_NIL(entry->key)) {
+//       if (IS_NIL(entry->value)) {
+//         return tombstone != NULL ? tombstone : entry;
+//       } else {
+//         if (tombstone == NULL) tombstone = entry;
+//       }
+//     } else if (valuesEqual(entry->key, key)) {
+//       return entry;
+//     }
+//     
+//     index = (index + 1) % capacity;
+//   }
+// }
+//
+
 void initTable(Table* table) {
   table->count = 0;
   table->capacity = 0;
@@ -74,6 +117,30 @@ static void adjustCapacity(Table* table, int capacity) {
   table->capacity = capacity;
 }
 
+// challenge question 1 chapter 20
+// static void adjustCapacity(Table* table, int capacity) {
+//   Entry* entries = ALLOCATE(Entry, capacity);
+//   for (int i = 0; i < capacity; i++) {
+//     entries[i].key = NIL_VAL;    
+//     entries[i].value = NIL_VAL;  
+//   }
+//   
+//   table->count = 0;
+//   for (int i = 0; i < table->capacity; i++) {
+//     Entry* entry = &table->entries[i];
+//     if (IS_NIL(entry->key)) continue;  
+//     
+//     Entry* dest = findEntry(entries, capacity, entry->key);
+//     dest->key = entry->key;
+//     dest->value = entry->value;
+//     table->count++;
+//   }
+//   FREE_ARRAY(Entry, table->entries, table->capacity);
+//   table->entries = entries;
+//   table->capacity = capacity;
+// }
+//
+
 bool tableSet(Table* table, ObjString* key, Value value) {
 
   if (table->count + 1 > table->capacity * TABLE_MAX_LOAD) {
@@ -89,6 +156,20 @@ bool tableSet(Table* table, ObjString* key, Value value) {
   entry->value = value;
   return isNewKey;
 }
+// challenge question 1 chapter 20
+
+// bool tableDelete(Table* table, Value key) {  
+//   if (table->count == 0) return false;
+//   
+//   Entry* entry = findEntry(table->entries, table->capacity, key);
+//   if (IS_NIL(entry->key)) return false;  
+//   
+//   // Place a tombstone in the entry
+//   entry->key = NIL_VAL;                  
+//   entry->value = BOOL_VAL(true);         
+//   return true;
+// }
+//
 
 bool tableDelete(Table* table, ObjString* key) {
   if (table->count == 0) return false;

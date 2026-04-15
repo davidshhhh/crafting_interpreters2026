@@ -152,6 +152,27 @@ static void declaration();
 static ParseRule* getRule(TokenType type);
 static void parsePrecedence(Precedence precedence);
 
+// CHALLENGE QUESTION 21: Constant deduplication optimization
+// 
+// OPTIMIZED VERSION 
+// static uint8_t identifierConstant(Token* name) {
+//   // ADDED: Check if this variable name is already in the constants table
+//   for (int i = 0; i < currentChunk()->constants.count; ++i) {
+//     Value existing = currentChunk()->constants.values[i];
+//     if (!IS_STRING(existing)) continue;
+//     ObjString* existingStr = AS_STRING(existing);
+//     // ADDED: Compare lengths and characters
+//     if (existingStr->length == name->length &&
+//         memcmp(existingStr->chars, name->start, name->length) == 0) {
+//       return (uint8_t)i; // ADDED: Reuse existing slot
+//     }
+//   }
+//   // ADDED: Only create new constant if not found
+//   return makeConstant(OBJ_VAL(copyString(name->start,
+//                                          name->length)));
+// }
+//
+
 static uint8_t identifierConstant(Token* name) {
   return makeConstant(OBJ_VAL(copyString(name->start,
                                          name->length)));
