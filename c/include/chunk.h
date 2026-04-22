@@ -27,6 +27,9 @@ typedef enum {
   OP_NEGATE,
   OP_CONSTANT_LONG, // <-- Challenge question 2 :chapter 14 added this new opcode for constants 
   OP_PRINT,
+  OP_JUMP,
+  OP_JUMP_IF_FALSE,
+  OP_LOOP,
   OP_RETURN,
 } OpCode;
 
