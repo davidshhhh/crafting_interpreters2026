@@ -1,0 +1,28 @@
+{
+  var a0 = 0;
+  var a1 = 1;
+  var a2 = 2;
+  var a3 = 3;
+  var a4 = 4;
+  var a5 = 5;
+  var a6 = 6;
+  var a7 = 7;
+  var a8 = 8;
+  var a9 = 9;
+  var a10 = 10;
+  var a254 = 254;
+  var a255 = 255;
+  var a256 = 256;
+  var a257 = 257;
+  var a258 = 258;
+  
+  a256 = 999;
+  a257 = 888;
+  
+  print a0;
+  print a254;
+  print a255;
+  print a256;
+  print a257;
+  print a258;
+}

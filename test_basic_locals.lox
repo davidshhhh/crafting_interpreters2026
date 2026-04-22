@@ -1,0 +1,11 @@
+{
+  var a0 = 0;
+  var a1 = 1;
+  var a2 = 2;
+  var a3 = 3;
+  
+  print a0;
+  print a1;
+  print a2;
+  print a3;
+}

@@ -68,7 +68,7 @@ int getLine(Chunk* chunk, int instruction) {    //
   for (;;) {                               // Loop until we find the correct line.
     int mid = (start + end) / 2;           // Check if the instruction is before, at, or after the midpoint.
     LineStart* line = &chunk->lines[mid];  // If the instruction is before the midpoint, it must be in the first half.
-    if (instruction < line->offset) {.     // If the instruction is after the midpoint, it must be in the second half.
+    if (instruction < line->offset) {      // If the instruction is after the midpoint, it must be in the second half.
       end = mid - 1;
     } else if (mid == chunk->lineCount - 1 ||
         instruction < chunk->lines[mid + 1].offset) {

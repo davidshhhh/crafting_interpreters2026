@@ -78,6 +78,16 @@ int disassembleInstruction(Chunk* chunk, int offset) {
       return byteInstruction("OP_GET_LOCAL", chunk, offset);
     case OP_SET_LOCAL:
       return byteInstruction("OP_SET_LOCAL", chunk, offset);
+    case OP_GET_LOCAL_LONG: {
+      uint16_t slot = ((uint16_t)chunk->code[offset + 1] << 8) | chunk->code[offset + 2];
+      printf("%-16s %4d\n", "OP_GET_LOCAL_LONG", slot);
+      return offset + 3;
+    }
+    case OP_SET_LOCAL_LONG: {
+      uint16_t slot = ((uint16_t)chunk->code[offset + 1] << 8) | chunk->code[offset + 2];
+      printf("%-16s %4d\n", "OP_SET_LOCAL_LONG", slot);
+      return offset + 3;
+    }
     case OP_GET_GLOBAL:
       return constantInstruction("OP_GET_GLOBAL", chunk, offset);
     case OP_DEFINE_GLOBAL:
@@ -102,6 +112,8 @@ int disassembleInstruction(Chunk* chunk, int offset) {
       return simpleInstruction("OP_NOT", offset);
     case OP_NEGATE:
       return simpleInstruction("OP_NEGATE", offset);
+    case OP_DUP:
+      return simpleInstruction("OP_DUP", offset);
     case OP_CONSTANT_LONG:
       return longConstantInstruction("OP_CONSTANT_LONG", chunk, offset); 
     case OP_PRINT:
