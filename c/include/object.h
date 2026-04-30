@@ -38,11 +38,12 @@ typedef struct {
   ObjString* name;
 } ObjFunction;
 
-typedef Value (*NativeFn)(int argCount, Value* args);
+typedef bool (*NativeFn)(int argCount, Value* args, Value* result);
 
 typedef struct {
   Obj obj;
   NativeFn function;
+  int arity;
 } ObjNative;
 
 // Chapter 19 chall question
@@ -79,13 +80,7 @@ ObjClosure* newClosure(ObjFunction* function);
 // ObjString* makeString(int length);
 
 ObjFunction* newFunction();
-ObjNative* newNative(NativeFn function);
-
-ObjNative* newNative(NativeFn function) {
-  ObjNative* native = ALLOCATE_OBJ(ObjNative, OBJ_NATIVE);
-  native->function = function;
-  return native;
-}
+ObjNative* newNative(NativeFn function, int arity);
 
 ObjString* takeString(char* chars, int length);
 ObjString* copyString(const char* chars, int length);

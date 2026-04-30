@@ -41,6 +41,13 @@ ObjFunction* newFunction() {
   return function;
 }
 
+ObjNative* newNative(NativeFn function, int arity) {
+  ObjNative* native = ALLOCATE_OBJ(ObjNative, OBJ_NATIVE);
+  native->function = function;
+  native->arity = arity;
+  return native;
+}
+
 // Chapter 19 chall question - flexible array member
 // ObjString* makeString(int length) {
 //   ObjString* string = (ObjString*)allocateObject(

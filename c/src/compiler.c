@@ -80,6 +80,8 @@ typedef struct Compiler {
 Parser parser;
 Compiler* current = NULL;
 Chunk* compilingChunk;
+static int innermostLoopStart = -1;
+static int innermostLoopScopeDepth = 0;
 
 
 static Chunk* currentChunk() {
@@ -205,9 +207,9 @@ static void initCompiler(Compiler* compiler, FunctionType type) {
   compiler->enclosing = current;
   compiler->function = NULL;
   compiler->type = type;
-  compiler->locals = NULL;
   compiler->localCount = 0;
-  compiler->localCapacity = 0;
+  compiler->localCapacity = 8;
+  compiler->locals = (Local*)malloc(sizeof(Local) * compiler->localCapacity);
   compiler->scopeDepth = 0;
   compiler->function = newFunction();
   compiler->constCount = 0;
@@ -238,6 +240,7 @@ static ObjFunction* endCompiler() {
   }
 #endif
 
+  free(current->locals);
   current = current->enclosing;
   return function;
 
@@ -678,8 +681,8 @@ static void function(FunctionType type) {
       if (current->function->arity > 255) {
         errorAtCurrent("Can't have more than 255 parameters.");
       }
-      uint8_t constant = parseVariable("Expect parameter name.");
-      defineVariable(constant);
+      uint8_t constant = parseVariable("Expect parameter name.", false);
+      defineVariable(constant, false);
     } while (match(TOKEN_COMMA));
   }
   consume(TOKEN_RIGHT_PAREN, "Expect ')' after parameters.");
@@ -696,10 +699,10 @@ static void function(FunctionType type) {
 }
 
 static void funDeclaration() {
-  uint8_t global = parseVariable("Expect function name.");
+  uint8_t global = parseVariable("Expect function name.", false);
   markInitialized();
   function(TYPE_FUNCTION);
-  defineVariable(global);
+  defineVariable(global, false);
 }
 
 static void varDeclaration() {
@@ -1003,7 +1006,7 @@ static void statement() {
 ObjFunction* compile(const char* source) {
   initScanner(source);
   Compiler compiler;
-  iinitCompiler(&compiler, TYPE_SCRIPT);
+  initCompiler(&compiler, TYPE_SCRIPT);
   parser.hadError = false;
   parser.panicMode = false;
   advance();
