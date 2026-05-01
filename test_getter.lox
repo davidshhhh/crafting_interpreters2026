@@ -1,12 +1,4 @@
-class Circle {
-  init(radius) {
-    this.radius = radius;
-  }
-
-  area {
-    return 3.141592653 * this.radius * this.radius;
-  }
-}
-
-var circle = Circle(4);
-print circle.area; // Should print "50.2655"
+var radius = 4;
+var pi = 3.141592653;
+var area = pi * radius * radius;
+print area;
