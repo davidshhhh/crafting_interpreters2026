@@ -17,6 +17,10 @@ static Obj* allocateObject(size_t size, ObjType type) {
   object->next = vm.objects;
   vm.objects = object;
 
+  /* Reference Counting:
+  object->refCount = 1;
+  */
+
   #ifdef DEBUG_LOG_GC
     printf("%p allocate %zu for %d\n", (void*)object, size, type);
   #endif

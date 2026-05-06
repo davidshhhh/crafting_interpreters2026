@@ -151,10 +151,26 @@ bool tableSet(Table* table, ObjString* key, Value value) {
 
   Entry* entry = findEntry(table->entries, table->capacity, key);
   bool isNewKey = entry->key == NULL;
+  
+  /* Reference Counting:
+  if (!IS_NIL(entry->value) && !isNewKey) {
+    if (IS_OBJ(entry->value)) {
+      decRef(AS_OBJ(entry->value));
+    }
+  }
+  */
+  
   if (isNewKey && IS_NIL(entry->value)) table->count++;
 
   entry->key = key;
   entry->value = value;
+  
+  /* Reference Counting:
+  if (IS_OBJ(value)) {
+    incRef(AS_OBJ(value));
+  }
+  */
+  
   return isNewKey;
 }
 // challenge question 1 chapter 20
@@ -175,11 +191,15 @@ bool tableSet(Table* table, ObjString* key, Value value) {
 bool tableDelete(Table* table, ObjString* key) {
   if (table->count == 0) return false;
 
-  // Find the entry.
   Entry* entry = findEntry(table->entries, table->capacity, key);
   if (entry->key == NULL) return false;
 
-  // Place a tombstone in the entry.
+  /* Reference Counting:
+  if (IS_OBJ(entry->value)) {
+    decRef(AS_OBJ(entry->value));
+  }
+  */
+
   entry->key = NULL;
   entry->value = BOOL_VAL(true);
   return true;

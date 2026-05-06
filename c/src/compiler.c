@@ -223,6 +223,11 @@ static void initCompiler(Compiler* compiler, FunctionType type) {
   compiler->locals = (Local*)malloc(sizeof(Local) * compiler->localCapacity);
   compiler->scopeDepth = 0;
   compiler->function = newFunction();
+  
+  /* Reference Counting:
+  incRef((Obj*)compiler->function);
+  */
+  
   compiler->constCount = 0;
   for (int i = 0; i < UINT8_COUNT; i++) {
     compiler->constNames[i] = NULL;
@@ -257,6 +262,11 @@ static ObjFunction* endCompiler() {
 #endif
 
   free(current->locals);
+  
+  /* Reference Counting:
+  decRef((Obj*)function);
+  */
+  
   current = current->enclosing;
   return function;
 

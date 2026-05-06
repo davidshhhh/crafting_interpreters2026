@@ -26,4 +26,9 @@ void markValue(Value value);
 void collectGarbage();
 void freeObjects();
 
+/* Reference Counting Alternative:
+void incRef(Obj* object);
+void decRef(Obj* object);
+*/
+
 #endif

@@ -38,6 +38,9 @@ struct Obj {
   ObjType type;
   bool isMarked;
   struct Obj* next;
+  /* Reference Counting:
+  int refCount;
+  */
 };
 
 typedef struct {

@@ -87,6 +87,75 @@ static bool typeNative(int argCount, Value* args, Value* result) {
   return true;
 }
 
+static bool getFieldNative(int argCount, Value* args, Value* result) {
+  if (argCount != 2) {
+    runtimeError("getField() expects 2 arguments but got %d.", argCount);
+    return false;
+  }
+  if (!IS_INSTANCE(args[0])) {
+    runtimeError("getField() first argument must be an instance.");
+    return false;
+  }
+  if (!IS_STRING(args[1])) {
+    runtimeError("getField() second argument must be a string.");
+    return false;
+  }
+  
+  ObjInstance* instance = AS_INSTANCE(args[0]);
+  ObjString* fieldName = AS_STRING(args[1]);
+  
+  if (tableGet(&instance->fields, fieldName, result)) {
+    return true;
+  }
+  
+  *result = NIL_VAL;
+  return true;
+}
+
+static bool setFieldNative(int argCount, Value* args, Value* result) {
+  if (argCount != 3) {
+    runtimeError("setField() expects 3 arguments but got %d.", argCount);
+    return false;
+  }
+  if (!IS_INSTANCE(args[0])) {
+    runtimeError("setField() first argument must be an instance.");
+    return false;
+  }
+  if (!IS_STRING(args[1])) {
+    runtimeError("setField() second argument must be a string.");
+    return false;
+  }
+  
+  ObjInstance* instance = AS_INSTANCE(args[0]);
+  ObjString* fieldName = AS_STRING(args[1]);
+  
+  tableSet(&instance->fields, fieldName, args[2]);
+  *result = args[2];
+  return true;
+}
+
+static bool deleteFieldNative(int argCount, Value* args, Value* result) {
+  if (argCount != 2) {
+    runtimeError("deleteField() expects 2 arguments but got %d.", argCount);
+    return false;
+  }
+  if (!IS_INSTANCE(args[0])) {
+    runtimeError("deleteField() first argument must be an instance.");
+    return false;
+  }
+  if (!IS_STRING(args[1])) {
+    runtimeError("deleteField() second argument must be a string.");
+    return false;
+  }
+  
+  ObjInstance* instance = AS_INSTANCE(args[0]);
+  ObjString* fieldName = AS_STRING(args[1]);
+  
+  tableDelete(&instance->fields, fieldName);
+  *result = NIL_VAL;
+  return true;
+}
+
 static void defineNative(const char* name, NativeFn function, int arity) {
   push(OBJ_VAL(copyString(name, (int)strlen(name))));
   push(OBJ_VAL(newNative(function, arity)));
@@ -111,6 +180,9 @@ void initVM() {
     defineNative("clock", clockNative, 0);
     defineNative("sqrt", sqrtNative, 1);
     defineNative("type", typeNative, 1);
+    defineNative("getField", getFieldNative, 2);
+    defineNative("setField", setFieldNative, 3);
+    defineNative("deleteField", deleteFieldNative, 2);
 }
 
 // challenge question 15
@@ -134,6 +206,11 @@ void freeVM() {
 void push(Value value) {
   *vm.stackTop = value;
   vm.stackTop++;
+  /* Reference Counting:
+  if (IS_OBJ(value)) {
+    incRef(AS_OBJ(value));
+  }
+  */
 }
 
 // challenge question 15
@@ -150,6 +227,13 @@ void push(Value value) {
 
 Value pop() {
   vm.stackTop--;
+  /* Reference Counting:
+  Value value = *vm.stackTop;
+  if (IS_OBJ(value)) {
+    decRef(AS_OBJ(value));
+  }
+  return value;
+  */
   return *vm.stackTop;
 }
 
@@ -461,20 +545,26 @@ register uint8_t* ip = frame->ip;
           return INTERPRET_RUNTIME_ERROR;
         }
 
-
         ObjInstance* instance = AS_INSTANCE(peek(0));
         ObjString* name = READ_STRING();
 
         Value value;
         if (tableGet(&instance->fields, name, &value)) {
-          pop(); // Instance.
+          pop();
           push(value);
           break;
         }
 
-        if (!bindMethod(instance->klass, name)) {
-          return INTERPRET_RUNTIME_ERROR;
+        if (tableGet(&instance->klass->methods, name, &value)) {
+          pop();
+          ObjBoundMethod* bound = newBoundMethod(
+              OBJ_VAL(instance), AS_CLOSURE(value));
+          push(OBJ_VAL(bound));
+          break;
         }
+
+        pop();
+        push(NIL_VAL);
         break;
       }
 

@@ -256,3 +256,24 @@ void freeObjects() {
 
   free(vm.grayStack);
 }
+
+/* Reference Counting Implementation:
+void incRef(Obj* object) {
+  if (object == NULL) return;
+  object->refCount++;
+#ifdef DEBUG_LOG_GC
+  printf("%p incref (count %d)\n", (void*)object, object->refCount);
+#endif
+}
+
+void decRef(Obj* object) {
+  if (object == NULL) return;
+  object->refCount--;
+#ifdef DEBUG_LOG_GC
+  printf("%p decref (count %d)\n", (void*)object, object->refCount);
+#endif
+  if (object->refCount == 0) {
+    freeObject(object);
+  }
+}
+*/
