@@ -23,6 +23,10 @@ typedef enum {
   OP_GET_PROPERTY,
   OP_SET_PROPERTY,
   OP_GET_SUPER,
+  /* BETA SEMANTICS - Add these opcodes for BETA method resolution:
+  OP_GET_INNER,    // Get a method from a subclass
+  OP_INNER_INVOKE, // Invoke a method from a subclass
+  */
   OP_EQUAL,
   OP_GREATER,
   OP_LESS,

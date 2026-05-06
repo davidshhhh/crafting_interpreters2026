@@ -85,12 +85,20 @@ typedef struct {
   ObjFunction* function;
   ObjUpvalue** upvalues;
   int upvalueCount;
+  /* BETA SEMANTICS - Add this field to track which class owns this method:
+  struct ObjClass* owner;  // Class that defined this method
+  */
 } ObjClosure;
 
 typedef struct {
   Obj obj;
   ObjString* name;
+  Value initializer;
   Table methods;
+  /* BETA SEMANTICS - Add these for BETA method resolution:
+  struct ObjClass* superclass;  // Pointer to superclass (for walking hierarchy)
+  Table ownMethods;             // Methods defined in THIS class only (not inherited)
+  */
 } ObjClass;
 
 typedef struct {

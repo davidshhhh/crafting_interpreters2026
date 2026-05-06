@@ -40,9 +40,24 @@ ObjBoundMethod* newBoundMethod(Value receiver,
 ObjClass* newClass(ObjString* name) {
   ObjClass* klass = ALLOCATE_OBJ(ObjClass, OBJ_CLASS);
   klass->name = name;
+  klass->initializer = NIL_VAL;
   initTable(&klass->methods);
   return klass;
 }
+
+/*
+BETA SEMANTICS - newClass() should initialize:
+
+ObjClass* newClass(ObjString* name) {
+  ObjClass* klass = ALLOCATE_OBJ(ObjClass, OBJ_CLASS);
+  klass->name = name;
+  klass->superclass = NULL;           // Add this
+  klass->initializer = NIL_VAL;
+  initTable(&klass->methods);
+  initTable(&klass->ownMethods);      // Add this - for BETA semantics
+  return klass;
+}
+*/
 
 ObjClosure* newClosure(ObjFunction* function) {
 
@@ -57,6 +72,23 @@ ObjClosure* newClosure(ObjFunction* function) {
   closure->upvalueCount = function->upvalueCount;
   return closure;
 }
+
+/*
+BETA SEMANTICS - newClosure() should initialize:
+
+ObjClosure* newClosure(ObjFunction* function) {
+  ObjUpvalue** upvalues = ALLOCATE(ObjUpvalue*, function->upvalueCount);
+  for (int i = 0; i < function->upvalueCount; i++) {
+    upvalues[i] = NULL;
+  }
+  ObjClosure* closure = ALLOCATE_OBJ(ObjClosure, OBJ_CLOSURE);
+  closure->function = function;
+  closure->upvalues = upvalues;
+  closure->upvalueCount = function->upvalueCount;
+  closure->owner = NULL;              // Add this - for BETA method tracking
+  return closure;
+}
+*/
 
 ObjFunction* newFunction() {
   ObjFunction* function = ALLOCATE_OBJ(ObjFunction, OBJ_FUNCTION);

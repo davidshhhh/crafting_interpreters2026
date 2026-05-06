@@ -608,6 +608,35 @@ static Token syntheticToken(const char* text) {
   return token;
 }
 
+/*
+BETA SEMANTICS - How to implement inner_() function:
+
+static void inner_(bool canAssign) {
+  if (currentClass == NULL) {
+    error("Can't use 'inner' outside of a method.");
+    return;
+  }
+
+  consume(TOKEN_DOT, "Expect '.' after 'inner'.");
+  consume(TOKEN_IDENTIFIER, "Expect method name.");
+  uint8_t name = identifierConstant(&parser.previous);
+
+  namedVariable(syntheticToken("this"), false);
+  if (match(TOKEN_LEFT_PAREN)) {
+    uint8_t argCount = argumentList();
+    namedVariable(syntheticToken("inner"), false);
+    emitBytes(OP_INNER_INVOKE, name);
+    emitByte(argCount);
+  } else {
+    namedVariable(syntheticToken("inner"), false);
+    emitBytes(OP_GET_INNER, name);
+  }
+}
+
+Also add to ParseRule rules[] array:
+  [TOKEN_INNER]         = {inner_,   NULL,   PREC_NONE},
+*/
+
 static void super_(bool canAssign) {
 
   if (currentClass == NULL) {

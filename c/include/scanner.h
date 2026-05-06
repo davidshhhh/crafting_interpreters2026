@@ -20,6 +20,9 @@ typedef enum {
   TOKEN_ELSE, TOKEN_FALSE, TOKEN_FOR, TOKEN_FUN, TOKEN_IF, TOKEN_NIL, 
   TOKEN_OR, TOKEN_PRINT, TOKEN_RETURN, TOKEN_SUPER, TOKEN_SWITCH, TOKEN_THIS,
   TOKEN_TRUE, TOKEN_VAR, TOKEN_WHILE,
+  /* BETA SEMANTICS - Add TOKEN_INNER for BETA method semantics:
+  TOKEN_INNER,  // Keyword for accessing subclass methods
+  */
   // Additional.
   TOKEN_COLON,
 

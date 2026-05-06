@@ -272,10 +272,8 @@ static bool callValue(Value callee, int argCount) {
       case OBJ_CLASS: {
         ObjClass* klass = AS_CLASS(callee);
         vm.stackTop[-argCount - 1] = OBJ_VAL(newInstance(klass));
-        Value initializer;
-        if (tableGet(&klass->methods, vm.initString,
-                     &initializer)) {
-          return call(AS_CLOSURE(initializer), argCount);
+        if (!IS_NIL(klass->initializer)) {
+          return call(AS_CLOSURE(klass->initializer), argCount);
         } else if (argCount != 0) {
           runtimeError("Expected 0 arguments but got %d.",
                        argCount);
@@ -392,8 +390,31 @@ static void defineMethod(ObjString* name) {
   Value method = peek(0);
   ObjClass* klass = AS_CLASS(peek(1));
   tableSet(&klass->methods, name, method);
+  if (name == vm.initString) klass->initializer = method;
   pop();
 }
+
+/*
+BETA SEMANTICS - defineMethod() should be modified like this:
+
+static void defineMethod(ObjString* name) {
+  Value method = peek(0);
+  ObjClass* klass = AS_CLASS(peek(1));
+  
+  // BETA: Tag the closure with its owner class
+  ObjClosure* closure = AS_CLOSURE(method);
+  closure->owner = klass;
+  
+  // Store in ownMethods (methods defined in THIS class only)
+  tableSet(&klass->ownMethods, name, method);
+  
+  // Also store in methods table for efficient lookup
+  tableSet(&klass->methods, name, method);
+  
+  if (name == vm.initString) klass->initializer = method;
+  pop();
+}
+*/
 
 static bool isFalsey(Value value) {
   return IS_NIL(value) || (IS_BOOL(value) && !AS_BOOL(value));
@@ -593,6 +614,64 @@ register uint8_t* ip = frame->ip;
         }
         break;
       }
+
+      /*
+      BETA SEMANTICS SUMMARY FOR CLOX:
+      ================================
+      
+      Key difference from standard Lox:
+      - Methods in SUPERCLASSES take precedence (opposite of normal)
+      - Use 'inner' (not 'super') to call overridden methods in subclasses
+      
+      Implementation checklist:
+      
+      1. Data structure changes:
+         - ObjClass needs: superclass pointer + ownMethods table
+         - ObjClosure needs: owner field (which class defines it)
+      
+      2. Method lookup (invokeFromClass):
+         - Search hierarchy from TOP DOWN, not bottom up
+         - Start at topmost ancestor, find first matching method
+         - This is opposite of current behavior
+      
+      3. Scanner: Add TOKEN_INNER keyword (handled like TOKEN_SUPER)
+      
+      4. Compiler: Add inner_() function (similar to super_())
+         - Compiles to OP_GET_INNER and OP_INNER_INVOKE opcodes
+      
+      5. VM changes:
+         
+         defineMethod(): Tag closure->owner = klass, store in ownMethods too
+         
+         OP_INHERIT: Store superclass pointer (don't copy methods down)
+         
+         OP_GET_INNER: Search for method in subclasses only
+           - Find receiver's class
+           - Search from innerClass downward for method in ownMethods
+           - Bind it if found, push nil if not
+         
+         OP_INNER_INVOKE: Similar to OP_GET_INNER but invoke directly
+           - If method not found in subclasses, it's a no-op (don't error)
+      
+      6. Testing: Methods in parent should execute first,
+         calling inner.methodName() to delegate to subclass override
+      
+      Example BETA code:
+        class Animal {
+          speak() {
+            print "Animal sound";
+            inner.speak();  // Call subclass version if it exists
+          }
+        }
+        
+        class Dog < Animal {
+          speak() {
+            print "Woof!";
+          }
+        }
+        
+        Dog().speak();  // Prints: "Animal sound" then "Woof!"
+      */
       
       case OP_EQUAL: {
         Value b = pop();
@@ -739,6 +818,30 @@ register uint8_t* ip = frame->ip;
         pop(); // Subclass.
         break;
       }
+      
+      /*
+      BETA SEMANTICS - OP_INHERIT should be modified like this:
+      
+      case OP_INHERIT: {
+        Value superclass = peek(1);
+        if (!IS_CLASS(superclass)) {
+          runtimeError("Superclass must be a class.");
+          return INTERPRET_RUNTIME_ERROR;
+        }
+        ObjClass* subclass = AS_CLASS(peek(0));
+        ObjClass* superKlass = AS_CLASS(superclass);
+        
+        // BETA: Store the superclass pointer (don't copy methods)
+        subclass->superclass = superKlass;
+        
+        // Copy superclass methods for efficient lookup
+        tableAddAll(&superKlass->methods, &subclass->methods);
+        
+        pop(); // Subclass.
+        break;
+      }
+      */
+      
       case OP_METHOD:
         defineMethod(READ_STRING());
         break;
