@@ -1,40 +1,74 @@
-### main .c
+# Crafting Interpreters - Lox Language Implementations
 
-```
-// test code for challenge question 1 :chapter 14  added line number tracking to the chunk
-int main(int argc, const char* argv[]) {
-  Chunk chunk;
-  initChunk(&chunk);
+This repository contains implementations of the **Lox** programming language from [Crafting Interpreters](https://craftinginterpreters.com/) by Robert Nystrom.
 
-  // Simple test: 5 instructions total
-  // 4 on line 123, 1 on line 124
-  int constant = addConstant(&chunk, 1.2);
-  writeChunk(&chunk, OP_CONSTANT, 123);  // instruction 0
-  writeChunk(&chunk, constant, 123);      // instruction 1
-  writeChunk(&chunk, OP_CONSTANT, 123);  // instruction 2
-  writeChunk(&chunk, constant, 123);      // instruction 3
-  writeChunk(&chunk, OP_RETURN, 124);    // instruction 4
+## What is Lox?
 
-  disassembleChunk(&chunk, "test chunk");
-  
-  printf("\n=== OLD METHOD (wasteful) ===\n");
-  printf("Would store line for EVERY instruction:\n");
-  printf("Lines array: [123, 123, 123, 123, 124]\n");
-  printf("Total integers stored: 5\n");
-  
-  printf("\n=== NEW METHOD (efficient) ===\n");
-  printf("Only stores when line CHANGES:\n");
-  printf("Lines array: [(offset:0, line:123), (offset:4, line:124)]\n");
-  printf("Total integers stored: %d\n", chunk.lineCount);
-  
-  printf("\n=== SAVINGS ===\n");
-  printf("Old method: %d integers\n", chunk.count);
-  printf("New method: %d integers\n", chunk.lineCount);
-  printf("Space saved: %d integers (%.0f%% reduction)\n", 
-         chunk.count - chunk.lineCount,
-         ((float)(chunk.count - chunk.lineCount) / chunk.count) * 100);
-  
-  freeChunk(&chunk);
-  return 0;
-}
-```
+Lox is a dynamically-typed scripting language designed to teach interpreter design. It includes features like:
+- Variables, functions, and classes
+- Control flow (if/else, for, while, break)
+- Closures and first-class functions
+- Object-oriented programming with inheritance
+- Dynamic typing and garbage collection
+
+## Two Implementations
+
+### jlox - Tree-Walk Interpreter (Java)
+Located in: `Book/com/craftinginterpreters/lox/`
+
+A tree-walk interpreter that directly executes the abstract syntax tree (AST). Each node is evaluated as the tree is traversed.
+
+**Key files:**
+- `Scanner.java` - Lexical analysis (tokenization)
+- `Parser.java` - Syntax analysis (builds AST)
+- `Interpreter.java` - AST evaluation and execution
+- `Resolver.java` - Variable resolution and scope analysis
+- `Environment.java` - Runtime environment/scope management
+- `Expr.java` / `Stmt.java` - AST node definitions
+
+**Features implemented:**
+- ✅ Expressions (arithmetic, logical, comparisons)
+- ✅ Variables and assignments
+- ✅ Functions and closures
+- ✅ Classes and inheritance
+- ✅ Control flow (if/else, for, while, break)
+- ✅ Extension methods
+- ✅ Getter methods
+- ✅ Class methods (static methods)
+
+### clox - Bytecode Virtual Machine (C)
+Located in: `c/` and `craftinginterpreters/c/`
+
+A bytecode compiler and virtual machine that compiles Lox to bytecode, then executes it on a stack-based VM. Much faster than jlox.
+
+**Key files:**
+- `scanner.c/.h` - Lexical analysis
+- `compiler.c/.h` - Bytecode compilation
+- `vm.c/.h` - Virtual machine execution
+- `chunk.c/.h` - Bytecode chunk management
+- `value.c/.h` - Runtime values
+- `table.c/.h` - Hash table implementation
+- `object.c/.h` - Object representation
+- `memory.c/.h` - Memory management with GC
+
+## Following the Book
+
+This project follows the progression of "Crafting Interpreters":
+
+1. **Part I: jlox (Java Tree-Walk Interpreter)**
+   - Chapters 1-13: Core language features
+   - Chapter 8: Statements and State
+   - Chapter 9: Control Flow
+   - Chapter 10: Functions
+   - Chapter 11: Resolving and Binding
+   - Chapter 12: Classes
+   - Chapter 13: Inheritance
+   - **Challenge Questions**: Custom features added (getters, class methods, extensions)
+
+2. **Part II: clox (C Bytecode VM)**
+   - Chapters 14-30: Bytecode compilation and optimization
+   - Chapter 14: Chunks of Bytecode
+   - Efficient line number tracking (challenge question 1)
+   - Modern VM architecture and optimization
+
+
