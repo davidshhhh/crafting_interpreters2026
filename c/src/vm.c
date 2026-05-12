@@ -472,8 +472,7 @@ register uint8_t* ip = frame->ip;
         return INTERPRET_RUNTIME_ERROR; \
       } \
       double b = AS_NUMBER(pop()); \
-      double a = AS_NUMBER(pop()); \
-      push(valueType(a op b)); \
+      vm.stackTop[-1] = valueType(AS_NUMBER(vm.stackTop[-1]) op b); \
     } while (false)
 
   for (;;) {

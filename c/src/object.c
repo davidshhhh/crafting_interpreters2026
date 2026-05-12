@@ -158,6 +158,19 @@ static uint32_t hashString(const char* key, int length) {
   return hash;
 }
 
+static ObjShortString* allocateShortString(const char* chars, int length,
+                                           uint32_t hash) {
+  ObjShortString* string = ALLOCATE_OBJ(ObjShortString, OBJ_SHORT_STRING);
+  string->length = length;
+  memcpy(string->chars, chars, length);
+  string->chars[length] = '\0';
+  string->hash = hash;
+  push(OBJ_VAL(string));
+  tableSet(&vm.strings, (ObjString*)string, NIL_VAL);
+  pop();
+  return string;
+}
+
 ObjString* takeString(char* chars, int length) {
   uint32_t hash = hashString(chars, length);
   ObjString* interned = tableFindString(&vm.strings, chars, length, hash);
@@ -165,6 +178,13 @@ ObjString* takeString(char* chars, int length) {
     FREE_ARRAY(char, chars, length + 1);
     return interned;
   }
+  
+  if (length <= 7) {
+    ObjShortString* short_string = allocateShortString(chars, length, hash);
+    FREE_ARRAY(char, chars, length + 1);
+    return (ObjString*)short_string;
+  }
+  
   return allocateString(chars, length, hash);
 }
 
@@ -172,6 +192,11 @@ ObjString* copyString(const char* chars, int length) {
   uint32_t hash = hashString(chars, length);
   ObjString* interned = tableFindString(&vm.strings, chars, length,hash);
   if (interned != NULL) return interned;
+  
+  if (length <= 7) {
+    return (ObjString*)allocateShortString(chars, length, hash);
+  }
+  
   char* heapChars = ALLOCATE(char, length + 1);
   memcpy(heapChars, chars, length);
   heapChars[length] = '\0';
@@ -218,6 +243,9 @@ void printObject(Value value) {
       break;
     case OBJ_STRING:
       printf("%s", AS_CSTRING(value));
+      break;
+    case OBJ_SHORT_STRING:
+      printf("%s", AS_SHORT_STRING(value)->chars);
       break;
     case OBJ_UPVALUE:
       printf("upvalue");
